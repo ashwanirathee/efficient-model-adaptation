@@ -1,0 +1,4 @@
+peft
+transformers
+accelerate
+torch
