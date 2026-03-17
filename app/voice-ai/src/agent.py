@@ -15,6 +15,7 @@ from livekit.agents import cli
 from mlx_audio.stt.utils import load_model as load_stt
 from mlx_audio.tts.utils import load_model as load_tts
 import requests
+import re
 
 load_dotenv(".env.local")
 logging.basicConfig(level=logging.INFO)
@@ -28,10 +29,18 @@ LOCAL_TTS_VOICE="af_heart"
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:8b")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
 
-class ManualVoiceAssistant:
-    def __init__(self):
+class VoiceAssistant:
+    def __init__(self, args=None):
+        self.args = args
         self.local_stt = load_stt(os.getenv("LOCAL_STT_ID", LOCAL_STT_ID))
         self.local_tts = load_tts(os.getenv("LOCAL_TTS_ID", LOCAL_TTS_ID))
+
+        if self.args is not None and self.args.utilize_remote:
+            from ollama import Client
+            self.ollama_client = Client(
+                host="https://ollama.com",
+                headers={'Authorization': 'Bearer ' + os.environ.get('OLLAMA_API_KEY')}
+            )
 
     def record_until_stop(self, sample_rate: int = 16000, channels: int = 1) -> np.ndarray:
         q: queue.Queue[np.ndarray] = queue.Queue()
@@ -98,21 +107,36 @@ class ManualVoiceAssistant:
                 pass
 
     def ask_ollama_sync(self, prompt: str) -> str:
-        r = requests.post(
-            f"{OLLAMA_BASE_URL}/api/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": (
-                    "You are a helpful voice AI assistant. "
-                    "Keep responses concise, clear, and natural for speech.\n\n"
-                    f"User: {prompt}\nAssistant:"
-                ),
-                "stream": False,
+        if self.args is not None and self.args.utilize_remote:
+            messages = [
+            {
+                'role': 'user',
+                'content': prompt,
             },
-            timeout=120,
-        )
-        r.raise_for_status()
-        return r.json()["response"].strip()
+            ]
+
+            result = "I am voice ai developed at santa cruz."
+            for part in self.ollama_client.chat('gpt-oss:120b', messages=messages, stream=True):
+                result += part['message']['content']
+
+            # r.json()["response"].strip()
+            return self.clean_for_tts(result.strip())
+        else:
+            r = requests.post(
+                f"{OLLAMA_BASE_URL}/api/generate",
+                json={
+                    "model": OLLAMA_MODEL,
+                    "prompt": (
+                        "You are a helpful voice AI assistant. "
+                        "Keep responses concise, clear, and natural for speech.\n\n"
+                        f"User: {prompt}\nAssistant:"
+                    ),
+                    "stream": False,
+                },
+                timeout=120,
+            )
+            r.raise_for_status()
+            return r.json()["response"].strip()
 
     async def ask_ollama(self, prompt: str) -> str:
         return await asyncio.to_thread(self.ask_ollama_sync, prompt)
@@ -144,11 +168,27 @@ class ManualVoiceAssistant:
         sd.play(playback, samplerate=sample_rate)
         sd.wait()
 
+    def clean_for_tts(self,text: str) -> str:
+        # Remove markdown emphasis/code
+        text = re.sub(r'[`*_#>-]+', ' ', text)
+
+        # Remove simple markdown table lines
+        text = re.sub(r'^\|.*\|$', ' ', text, flags=re.MULTILINE)
+        text = re.sub(r'^\|?[-: ]+\|[-|: ]*$', ' ', text, flags=re.MULTILINE)
+
+        # Replace URLs with a simple placeholder or remove
+        text = re.sub(r'https?://\S+', ' ', text)
+
+        # Collapse repeated whitespace/newlines
+        text = re.sub(r'\s+', ' ', text).strip()
+
+        return text
+
 
 async def main():
-    assistant = ManualVoiceAssistant()
+    assistant = VoiceAssistant()
 
-    print("Manual local voice assistant")
+    print("Voice assistant")
     print("Press 1 then Enter to start recording")
     print("Press 2 then Enter to stop recording")
     print("Press q then Enter to quit")
@@ -183,8 +223,10 @@ async def main():
 
         print("Speaking...")
         audio_reply = await assistant.synthesize(reply)
-        await asyncio.to_thread(assistant.play_audio, audio_reply, 24000)
-
+        try:    
+            await asyncio.to_thread(assistant.play_audio, audio_reply, 24000)
+        except Exception as e:
+            print(f"Error during audio playback: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())

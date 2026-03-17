@@ -23,8 +23,8 @@ Core flow:
 
 ## Primary Files
 
-- VQA planning notes: `docs/peft-vqa.md`
-- VQA execution plan: `src/peft-vqa/TASKS.md`
+- Orientation + roadmap: [AGENTS.md](AGENTS.md)
+- Narrative + backlog snapshot: [docs/writeup.tex](docs/writeup.tex)
 
 ## Execution Principles
 

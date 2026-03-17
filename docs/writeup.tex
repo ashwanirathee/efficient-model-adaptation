@@ -1,0 +1,131 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\title{Efficient Model Adaptation Program Write-up}
+\author{ }
+\date{March 2026}
+
+\begin{document}
+\maketitle
+
+\section{Mission}
+This repository demonstrates how parameter-efficient fine-tuning (PEFT),
+retrieval-augmented generation (RAG), and quantized inference can be
+combined to ship grounded assistants that run on accessible hardware.
+Each subproject highlights a different slice of that story: a technical
+VQA agent and a medical imaging study that quantifies LoRA/BitFit
+trade-offs.
+
+\section{Completed Work}
+\subsection{PEFT-Thyroid LLaVA-Med Study}
+\begin{itemize}[leftmargin=*]
+\item Curated and cleaned the DDTI thyroid ultrasound dataset (hosted on
+    Kaggle) plus an updated derivative tailored for PEFT experiments.
+\item Adapted LLaVA-Med using LoRA and BitFit, releasing public
+    checkpoints and notebooks that walk through dataset prep, baseline
+    establishment, hyperparameter sweeps, and evaluation.
+\item Captured reproducibility guidance in
+    \texttt{src/peft-thyroid/README.md}, including how to attach
+    datasets/weights inside Kaggle notebooks to work around local VRAM
+    limits.
+\end{itemize}
+
+\subsection{Strategic Planning for PEFT-VQA}
+\begin{itemize}[leftmargin=*]
+\item Captured user personas, evaluation metrics, and a 12-task execution
+    plan directly inside this write-up so every agent has the same brief.
+\item Defined the agent architecture (retrieval layer, tool adapters,
+    PEFT-tuned reasoning model, quantization + evaluation loop) and the
+    communication plan for stakeholders.
+\end{itemize}
+
+\subsection{MLX Voice Assistant Prototype}
+\begin{itemize}[leftmargin=*]
+\item Built a fully local speech loop that records microphone audio,
+    transcribes with Parakeet, queries a small Ollama model, and vocalizes
+    the cleaned reply through Kokoro running on Apple MLX.
+\item Captured the operational playbook in
+    \texttt{app/voice-ai/readme.md}: `uv sync`, ensure Homebrew installs
+    (`espeak-ng`, `portaudio`), and launch via
+    \verb|ESPEAK_DATA_PATH="$(brew --prefix espeak-ng)/share/espeak-ng-data"|
+    followed by \texttt{uv run src/agent.py}.
+\item Documented customization knobs (\texttt{LOCAL\_STT\_ID},
+    \texttt{LOCAL\_TTS\_VOICE}, \texttt{OLLAMA\_MODEL}) so future demos
+    can swap voices/models without code edits.
+\end{itemize}
+
+\section{In-Flight and Planned Work}
+\subsection{Retrieval-Centric Technical VQA Assistant}
+\begin{itemize}[leftmargin=*]
+\item \textbf{Personas \\ knowledge base}: finalize prioritized
+    workflows (students, engineers, researchers) and ingest high-signal
+    CV/ML/graphics sources with robust metadata.
+\item \textbf{Retrieval pipeline}: stand up chunking, embeddings, and
+    recall/precision harness using lightweight scripts under
+    \texttt{src/peft-vqa} plus the shared prompt manifest in
+    \texttt{test.json}.
+\item \textbf{Tool adapters}: expose code execution, math helpers, PDF
+    parsing, and repo search with guardrails so the assistant behaves like
+    a true agent.
+\item \textbf{PEFT dataset + experiments}: generate instruction-style QA
+    pairs, then compare LoRA, QLoRA, and prompt-tuning adapters for
+    accuracy, hallucination, and token efficiency.
+\item \textbf{Quantization + deployment}: profile 4/8-bit variants,
+    measure memory/latency deltas, and route easy vs. hard queries to the
+    right model footprint.
+\item \textbf{Evaluation loop}: track hallucination/citation checks
+    inside \texttt{test.json} + README tables, then promote promising
+    metrics back into this write-up for reliability reviews.
+\item \textbf{UI + ops}: ship a Streamlit/Gradio/chat UI with upload
+    support, telemetry, and containerized deployment scripts.
+\end{itemize}
+
+\subsection{PEFT-Thyroid Follow-ups}
+\begin{itemize}[leftmargin=*]
+\item Explore additional adapters (e.g., IA3) and distillation
+    strategies to shrink deployment footprint without sacrificing
+    diagnostic fidelity.
+\item Integrate dataset alignment checks and model monitoring so
+    clinical collaborators can trust distributional stability over time.
+\end{itemize}
+
+\section{Roadmap Snapshot}
+Table~\ref{tab:roadmap} distills the open tasks currently tracked inside
+this write-up. Status values will remain synchronized with that source
+of truth.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Workstream} & \textbf{Upcoming Deliverables} \\
+        \midrule
+        Personas + scope & Persona briefs, prioritized use cases \\
+        Knowledge base & Source inventory, ingestion spec, embeddings \\
+        Retrieval pipeline & Vector service, recall report \\
+        Tool adapters & Guarded tool catalog + tests \\
+        Baseline model & Agent notebook, telemetry logs \\
+        PEFT dataset & Training corpus, taxonomy \\
+        PEFT sweeps & Experiment tracker, best checkpoint \\
+        Quantization & Benchmark sheet, quantized artifacts \\
+        Evaluation loop & Automated factual/grounding eval suite \\
+        UI & Chat interface with citations and uploads \\
+        Deployment & Docker/infra scripts, ops doc \\
+        Story assets & README refresh, demo script, metrics summary \\
+        \bottomrule
+    \end{tabular}
+    \caption{Rolling plan for the technical VQA assistant track.}
+    \label{tab:roadmap}
+\end{table}
+
+\section{Call to Action}
+Short term, the priority is to operationalize the VQA agent foundation:
+lock personas, build the retrieval stack, and stand up the baseline
+reasoning model so PEFT + quantization experiments have a stable target.
+In parallel, continue polishing the MLX voice runtime so it can front
+the same reasoning stack once retrieval is ready. Every change should be
+reflected in this write-up and surfaced through the repo-orientation
+skill so future agents can align instantly.
+
+\end{document}

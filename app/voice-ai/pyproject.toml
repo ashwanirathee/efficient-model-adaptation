@@ -12,6 +12,7 @@ dependencies = [
     "livekit-plugins-noise-cancellation~=0.2",
     "mlx-audio>=0.2.10",
     "numpy>=2.2.6",
+    "ollama>=0.6.1",
     "onnxruntime>=1.24.3",
     "python-dotenv",
     "requests>=2.32.5",

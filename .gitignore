@@ -1,4 +1,3 @@
-docs/
 app/voice-ai/src/voice_ai.egg-info/
 .env
 uv.lock
