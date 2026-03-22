@@ -18,7 +18,7 @@
 ## Architecture Map
 - **PEFT-VQA**: Currently doc-first—personas, tasks, and roadmap live in [docs/writeup.tex](docs/writeup.tex); future datasets/scripts belong under [src/peft-vqa](src/peft-vqa).
 - **PEFT-Thyroid**: Dataset prep → baseline → LoRA/BitFit tuning → evaluation via the notebook quartet (`dataset`, `baseline`, `training`, `testing`) in [src/peft-thyroid](src/peft-thyroid); artifacts referenced in the README.
-- **MLX Voice Agent**: [app/voice-ai/src/agent.py](app/voice-ai/src/agent.py#L1-L170) orchestrates Parakeet STT, Ollama inference, and Kokoro TTS with the shared `MLX_LOCK` plus `sounddevice` playback; `.env.local` toggles models/endpoints.
+- **MLX Voice Agent**: [app/voice-ai/src/agent.py](app/voice-ai/src/agent.py#L1-L170) and [app/voice-ai/src/project.py](app/voice-ai/src/project.py) orchestrate Parakeet STT, Ollama inference, and Kokoro or Kitten TTS with the shared `MLX_LOCK` plus `sounddevice` playback. The agent now logs timing for each step (record, transcribe, LLM, TTS), and robustly checks TTS model loading. `.env.local` toggles models/endpoints and voices.
 
 ## Coding Conventions
 - Keep config in `.env.local` or Justfile variables; avoid hardcoding secrets.
@@ -29,7 +29,7 @@
 
 ## Validation Hooks
 - Run `cd docs && latexmk -pdf writeup.tex` after every roadmap or narrative tweak.
-- For the voice agent, capture sample transcripts + latencies in [app/voice-ai/readme.md](app/voice-ai/readme.md) when changing models or audio settings.
+- For the voice agent, capture sample transcripts and timing logs (latencies) in [app/voice-ai/readme.md](app/voice-ai/readme.md) when changing models, voices, or audio settings. The agent now prints timing for each major step and checks for TTS model load errors.
 - For the thyroid notebooks, re-run the Kaggle “testing” notebook before publishing new metrics and update the README tables accordingly.
 
 Refer to [SKILL.md](SKILL.md) for day-to-day workflows and escalation paths.

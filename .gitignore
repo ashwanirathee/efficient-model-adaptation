@@ -2,3 +2,6 @@ app/voice-ai/src/voice_ai.egg-info/
 .env
 uv.lock
 llm-evals/
+__pycache__/
+data/
+.DS_Store

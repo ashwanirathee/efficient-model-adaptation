@@ -52,10 +52,12 @@ description: "Use when: navigating the efficient-model-adaptation workspace, sum
   2. Keep tables synced with the latest metrics or qualitative notes; cite new files with linkified references.
   3. Sanity-check formatting with `cd docs && latexmk -pdf writeup.tex` (or run `pdflatex` twice) before publishing.
   4. Reflect any major narrative changes in [AGENTS.md](AGENTS.md) so setup instructions stay aligned.
-- **Debug the TTS stack**
+**Debug the TTS stack and timing**
   1. Verify Homebrew deps: `brew list espeak-ng portaudio ffmpeg`; reinstall if missing.
   2. Confirm phoneme tables: `ls $(brew --prefix espeak-ng)/share/espeak-ng-data/phontab`.
   3. Export `ESPEAK_DATA_PATH` (or `ESPEAKNG_DATA`) before `uv run src/agent.py`; note the path in `.env.local` if it should persist.
-  4. Re-run the voice agent with `LOGLEVEL=DEBUG` (set via env var) to capture Kokoro warnings and document fixes in [app/voice-ai/readme.md](app/voice-ai/readme.md).
+  4. The voice agent now prints timing for each step (record, transcribe, LLM, TTS) in the logs. Check these to diagnose slowdowns or model issues.
+  5. TTS model selection (Kokoro/Kitten) and voice are controlled by `.env.local` or CLI args; errors in model loading are now logged and surfaced.
+  6. Re-run the voice agent with `LOGLEVEL=DEBUG` (set via env var) to capture Kokoro/Kitten warnings and document fixes in [app/voice-ai/readme.md](app/voice-ai/readme.md).
 
 Use this skill whenever an agent needs to ground itself before editing or summarizing any part of the repository.

@@ -44,7 +44,9 @@ trade-offs.
 \begin{itemize}[leftmargin=*]
 \item Built a fully local speech loop that records microphone audio,
     transcribes with Parakeet, queries a small Ollama model, and vocalizes
-    the cleaned reply through Kokoro running on Apple MLX.
+    the cleaned reply through Kokoro or Kitten TTS running on Apple MLX.
+\item The agent now logs timing for each major step (record, transcribe, LLM, TTS) to help profile latency and diagnose slowdowns.
+\item TTS model selection (Kokoro/Kitten) and voice are controlled by environment or CLI; errors in model loading are now logged and surfaced.
 \item Captured the operational playbook in
     \texttt{app/voice-ai/readme.md}: `uv sync`, ensure Homebrew installs
     (`espeak-ng`, `portaudio`), and launch via
